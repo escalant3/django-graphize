@@ -1,4 +1,4 @@
-Graphize it's a django application that adds a new functionality
+Graphize is a django application that adds a new functionality
 to the manage.py script that exports the selected models from sql
 to graphical format (a Pajek file).
 
@@ -31,5 +31,6 @@ graph_structure = {Model1: (MODEL_1_EXTRA_DATA,),
                     }
 
 Usage:
-Run from your django project directory:
-# python manage.py graphize
+To create a mygraph.net, run the following command from your django
+project directory:
+# python manage.py graphize mygraph.net
