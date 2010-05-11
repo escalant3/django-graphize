@@ -1,0 +1,35 @@
+Graphize it's a django application that adds a new functionality
+to the manage.py script that exports the selected models from sql
+to graphical format (a Pajek file).
+
+Disclaimer:
+This software is under hard development.
+
+Configuration:
+Just add the graphize app to your settings.py file and create a
+graphize_settings.py in the root of your django project directory.
+
+You may include in this file all the models you want to graphize in
+a dictionary called "graph_structure". Each element of the dictionary
+is a tuple that in this first version just includes an element with
+another dictionary that specifies aditional fields that we want to 
+add to a specific element.
+
+A sample code could be:
+
+from app1.models import Model1, Model2
+from app2.models import ModelA, ModelB
+from creators.models import Creator, School
+
+
+MODEL_1_EXTRA_DATA = {'type': 'model1'}
+
+graph_structure = {Model1: (MODEL_1_EXTRA_DATA,),
+                    Model2: ({},),
+                    ModelA: ({},),
+                    ModelB: ({},),
+                    }
+
+Usage:
+Run from your django project directory:
+# python manage.py graphize
