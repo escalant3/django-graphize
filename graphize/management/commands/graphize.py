@@ -43,7 +43,7 @@ class Command(BaseCommand):
                         related_object = getattr(element, field.name)
                         if type(related_object) in valid_models:
                             related_object_type = type(related_object)
-                            related_object_id = '%d_%s' % (valid_models.index(related_object_type),
+                            related_object_id = '%d-%s' % (valid_models.index(related_object_type),
                                                             related_object.id)
                             gdb.add_edge(node_id, related_object_id)
                         elif type(related_object) != None:
@@ -52,7 +52,8 @@ class Command(BaseCommand):
                         field_data = self.pajek_getattr(element, field.name)
                         if type(field_data) == unicode:
                             field_data = '"%s"' % field_data
-                        node[field.name] = field_data
+                        if field_data:
+                            node[field.name] = field_data
                 node.update(model[0])
                 for many_field in meta.many_to_many:
                     field = getattr(element, many_field.name)
