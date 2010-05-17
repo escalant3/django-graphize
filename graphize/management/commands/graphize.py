@@ -1,6 +1,7 @@
-import datetime
+
 
 import networkx as nx
+from datetime import datetime
 
 from django.core.management.base import BaseCommand
 from django.db.models.fields.related import ForeignKey
@@ -112,8 +113,12 @@ python manage.py graphize neo4j http://localhost:9999
                         elif type(related_object) != None:
                             pass
                     else:
-                        field_data = format_function(element, field.name)
-                        
+                        field_data = self.pajek_getattr(element, field.name)
+                        data_type = type(field_data)
+                        if data_type == unicode or \
+                                data_type == str or \
+                                data_type == datetime:
+                            field_data = '"%s"' % field_data
                         if field_data:
                             node[field.name] = field_data
                 node.update(model[0])
