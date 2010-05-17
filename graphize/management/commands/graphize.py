@@ -1,4 +1,5 @@
 import networkx as nx
+from datetime import datetime
 
 from django.core.management.base import BaseCommand
 from django.db.models.fields.related import ForeignKey
@@ -50,7 +51,10 @@ class Command(BaseCommand):
                             pass
                     else:
                         field_data = self.pajek_getattr(element, field.name)
-                        if type(field_data) == unicode:
+                        data_type = type(field_data)
+                        if data_type == unicode or \
+                                data_type == str or \
+                                data_type == datetime:
                             field_data = '"%s"' % field_data
                         if field_data:
                             node[field.name] = field_data
