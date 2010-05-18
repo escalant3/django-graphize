@@ -1,6 +1,6 @@
 Graphize is a django application that adds a new functionality
 to the manage.py script that exports the selected models from sql
-to graphical format (a Pajek file).
+to graphical format, such as a Pajek file or a Neo4j REST database.
 
 Disclaimer:
 This software is under hard development.
@@ -30,7 +30,14 @@ graph_structure = {Model1: (MODEL_1_EXTRA_DATA,),
                     ModelB: ({},),
                     }
 
-Usage:
-To create a mygraph.net, run the following command from your django
-project directory:
-# python manage.py graphize mygraph.net
+Usage: python manage.py graphize OUTPUT_TYPE OUTPUT
+
+Where OUTPUT_TYPE can be:
+- neo4j: Neo4j Graph Database
+- pajek: .net pajek file
+
+and OUTPUT is the destination server/file.
+
+Example:
+python manage.py graphize neo4j http://localhost:9999
+python manage.py graphize pajek myfile.net
