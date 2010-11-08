@@ -135,7 +135,8 @@ python manage.py graphize neo4j http://localhost:9999
                                         element.id)
                 gdb.add_node(node_id)
                 node = gdb.node[node_id]
-                for field in meta.fields:
+                meta_fields = [f for f in meta.fields if f.name not in model[1]]
+                for field in meta_fields:
                     #TODO Allow filter several fields
                     if isinstance(field, ForeignKey):
                         related_object = getattr(element, field.name)

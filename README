@@ -19,15 +19,14 @@ A sample code could be:
 
 from app1.models import Model1, Model2
 from app2.models import ModelA, ModelB
-from creators.models import Creator, School
-
 
 MODEL_1_EXTRA_DATA = {'type': 'model1'}
+MODEL_1_BLACK_LIST = ('unwanted_field1', 'unwanted_field2')
 
-graph_structure = {Model1: (MODEL_1_EXTRA_DATA,),
-                    Model2: ({},),
-                    ModelA: ({},),
-                    ModelB: ({},),
+graph_structure = {Model1: (MODEL_1_EXTRA_DATA, MODEL_1_BLACK_LIST),
+                    Model2: ({},()),
+                    ModelA: ({},()),
+                    ModelB: ({},()),
                     }
 
 Usage: python manage.py graphize OUTPUT_TYPE OUTPUT
@@ -35,6 +34,7 @@ Usage: python manage.py graphize OUTPUT_TYPE OUTPUT
 Where OUTPUT_TYPE can be:
 - neo4j: Neo4j Graph Database
 - pajek: .net pajek file
+- sylva: sylva format file
 
 and OUTPUT is the destination server/file.
 
