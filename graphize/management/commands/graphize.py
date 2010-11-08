@@ -1,9 +1,20 @@
+import codecs
 import networkx as nx
+import simplejson
+
 from datetime import datetime
 
 from django.core.management.base import BaseCommand
+from django.db.models.fields.files import ImageFieldFile
 from django.db.models.fields.related import ForeignKey
+from django.utils.encoding import smart_unicode
+from django.contrib.gis.db.models import *
+from django.contrib.gis.geos.collections import MultiPolygon
+from django.contrib.gis.geos.point import Point
 
+import graphize_settings
+
+GEO_TYPES = (MultiPolygon, Point)
 
 class Command(BaseCommand):
 
@@ -12,19 +23,14 @@ class Command(BaseCommand):
     def pajek_getattr(self, element, attr):
         ''' Removes unfriendly characters with Pajek specification '''
         value = getattr(element, attr)
-        data_type == type(value)
+        data_type = type(value)
         if data_type == unicode:
             value = value.replace('"', '\'')
             value = value.replace('\n', ' ')
             value = value.replace('\r', ' ')
-        if data_type == unicode or \
-            data_type == str or \
-            data_type == datetime:
-            value = '"%s"' % value
-        return value
+        return smart_unicode(value) 
 
     def to_pajek_file(self, file_name, gdb):
-        import codecs
         fh = codecs.open(file_name, 'w', encoding='utf-8')
         nx.write_pajek(gdb, fh)
 
@@ -32,7 +38,11 @@ class Command(BaseCommand):
         ''' Removes unfriendly characters with neo4j specification '''
         value = getattr(element, attr)
         data_type = type(value)
-        if data_type == datetime:
+        if data_type == datetime.datetime or data_type == datetime.date:
+            value = str(value)
+        elif data_type in GEO_TYPES:
+            value = value.wkt
+        elif data_type == ImageFieldFile:
             value = str(value)
         return value
 
@@ -59,13 +69,36 @@ class Command(BaseCommand):
             else:
                 neo4j_nodes[node1_id].RELATED(neo4j_nodes[node2_id])
 
+    def to_sylva_file(self, file_name, gdb):
+        semantic = graphize_settings.SEMANTIC_RELATIONSHIPS
+        sylva_export = {'nodes': [], 'edges':[]}
+        for node in gdb.nodes():
+            sylva_export['nodes'].append(gdb.node[node])
+        for node1_id, node2_id in gdb.edges():
+            node1 = gdb.node[node1_id]
+            node2 = gdb.node[node2_id]
+            node1_type = node1['type']
+            node2_type = node2['type']
+            if (node1_type, node2_type) in semantic:
+                sylva_export['edges'].append((node1, node2, 
+                            semantic[(node1_type, node2_type)]))
+            elif (node2_type, node1_type) in semantic:
+                sylva_export['edges'].append((node2, node1, 
+                            semantic[(node2_type, node1_type)]))
+            else:
+                print "Unknown semantic relationship (%s, %s)" % (node1_type,
+                                                                    node2_type)
+        fh = codecs.open(file_name, 'w', encoding='utf-8')
+        fh.write(simplejson.dumps(sylva_export))
+        fh.close()
+    
     def handle(self, *args, **options):
-        import graphize_settings
         if len(args) < 2:
             print """Usage: python manage.py graphize OUTPUT_TYPE OUTPUT
 
 Where OUTPUT_TYPE can be:
 - neo4j: Neo4j Graph Database
+- sylva: Sylva Graph Database
 - pajek: .net pajek file
 
 and OUTPUT is the destination server/file.
@@ -82,6 +115,10 @@ python manage.py graphize neo4j http://localhost:9999
             elif args[0] == 'pajek':
                 format_function = self.pajek_getattr
                 output_function = self.to_pajek_file
+                destination = args[1]
+            elif args[0] == 'sylva':
+                format_function = self.neo4j_getattr
+                output_function = self.to_sylva_file
                 destination = args[1]
             else:
                 print 'Unknown OUTPUT_TYPE %s' % args[0]
@@ -127,5 +164,4 @@ python manage.py graphize neo4j http://localhost:9999
                                                            related_object.id)
                             gdb.add_edge(node_id, related_object_id)
                             gdb.edge[node_id][related_object_id]['type'] = related_model_field_name
-
         output_function(destination, gdb)
