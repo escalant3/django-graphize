@@ -152,6 +152,11 @@ python manage.py graphize neo4j http://localhost:9999
                         field_data = format_function(element, field.name)
                         if field_data:
                             node[field.name] = field_data
+                swapping_nodes = model[2]
+                for old_field, new_field, delete in swapping_nodes:
+                    node[new_field] = node[old_field]
+                    if delete:
+                        node.pop(old_field)
                 node.update(model[0])
                 for many_field in meta.many_to_many:
                     field = getattr(element, many_field.name)
